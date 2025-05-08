@@ -24,62 +24,176 @@
 
     <main class="container">
         <h2>Inventario</h2>
-        <div class="actions">
-            <button id="addInventoryBtn" class="btn-primary">Agregar producto</button>
-            <div class="search-box">
-                <input type="text" placeholder="Buscar...">
-                <button class="btn-secondary">Buscar</button>
-            </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="productos">Productos</button>
+            <button class="tab-btn" data-tab="armazones">Armazones</button>
         </div>
+        
+        <div class="tab-content" id="productos-tab">
+            <div class="actions">
+                <button id="addProductBtn" class="btn-primary">Agregar producto</button>
+                <div class="search-box">
+                    <input type="text" id="searchProducto" placeholder="Buscar producto...">
+                    <button class="btn-secondary" id="searchProductoBtn">Buscar</button>
+                </div>
+            </div>
 
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>ID Inventario</th>
-                    <th>ID Armazón</th>
-                    <th>ID Producto</th>
-                    <th>Fecha de entrada</th>
-                    <th>Piezas</th>
-                    <th>Precio de venta</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="inventoryTableBody">
-                <!-- Datos se cargarán dinámicamente -->
-            </tbody>
-        </table>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Proveedor</th>
+                        <th>Precio compra</th>
+                        <th>Precio venta</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="productosTableBody">
+                    <!-- Datos se cargarán dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="tab-content" id="armazones-tab" style="display: none;">
+            <div class="actions">
+                <button id="addArmazonBtn" class="btn-primary">Agregar armazón</button>
+                <div class="search-box">
+                    <input type="text" id="searchArmazon" placeholder="Buscar armazón...">
+                    <button class="btn-secondary" id="searchArmazonBtn">Buscar</button>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Marca</th>
+                        <th>Modelo</th>
+                        <th>Color</th>
+                        <th>Precio compra</th>
+                        <th>Precio venta</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="armazonesTableBody">
+                    <!-- Datos se cargarán dinámicamente -->
+                </tbody>
+            </table>
+        </div>
     </main>
 
-    <!-- Modal para agregar/editar inventario -->
-    <div id="inventoryModal" class="modal">
+    <!-- Modal para agregar/editar producto -->
+    <div id="productoModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h3 id="modalTitle">Agregar Producto al Inventario</h3>
-            <form id="inventoryForm">
-                <input type="hidden" id="inventoryId">
+            <h3 id="productoModalTitle">Agregar Producto</h3>
+            <form id="productoForm">
+                <input type="hidden" id="productoId">
                 <div class="form-group">
-                    <label for="armazonId">ID Armazón</label>
-                    <select id="armazonId" required>
+                    <label for="productoCodigo">Código</label>
+                    <input type="text" id="productoCodigo" required>
+                </div>
+                <div class="form-group">
+                    <label for="productoNombre">Nombre</label>
+                    <input type="text" id="productoNombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="productoDescripcion">Descripción</label>
+                    <textarea id="productoDescripcion" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="productoCategoria">Categoría</label>
+                    <select id="productoCategoria" required>
                         <!-- Opciones se cargarán dinámicamente -->
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="productoId">ID Producto</label>
-                    <select id="productoId" required>
+                    <label for="productoProveedor">Proveedor</label>
+                    <select id="productoProveedor">
+                        <option value="">Seleccione un proveedor</option>
                         <!-- Opciones se cargarán dinámicamente -->
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="fechaEntrada">Fecha de entrada</label>
-                    <input type="date" id="fechaEntrada" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="productoPrecioCompra">Precio de compra</label>
+                        <input type="number" step="0.01" id="productoPrecioCompra" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productoPrecioVenta">Precio de venta</label>
+                        <input type="number" step="0.01" id="productoPrecioVenta" required>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label for="piezas">Número de piezas</label>
-                    <input type="number" id="piezas" required>
+                    <label for="productoStock">Stock</label>
+                    <input type="number" id="productoStock" value="0">
+                </div>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar armazón -->
+    <div id="armazonModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="armazonModalTitle">Agregar Armazón</h3>
+            <form id="armazonForm">
+                <input type="hidden" id="armazonIdHidden">
+                <div class="form-group">
+                    <label for="armazonId">Código</label>
+                    <input type="text" id="armazonId" required>
                 </div>
                 <div class="form-group">
-                    <label for="precioVenta">Precio de venta</label>
-                    <input type="number" step="0.01" id="precioVenta" required>
+                    <label for="armazonNombre">Nombre</label>
+                    <input type="text" id="armazonNombre" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="armazonMarca">Marca</label>
+                        <input type="text" id="armazonMarca">
+                    </div>
+                    <div class="form-group">
+                        <label for="armazonModelo">Modelo</label>
+                        <input type="text" id="armazonModelo">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="armazonColor">Color</label>
+                        <input type="text" id="armazonColor">
+                    </div>
+                    <div class="form-group">
+                        <label for="armazonMaterial">Material</label>
+                        <input type="text" id="armazonMaterial">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="armazonProveedor">Proveedor</label>
+                    <select id="armazonProveedor">
+                        <option value="">Seleccione un proveedor</option>
+                        <!-- Opciones se cargarán dinámicamente -->
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="armazonPrecioCompra">Precio de compra</label>
+                        <input type="number" step="0.01" id="armazonPrecioCompra" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="armazonPrecioVenta">Precio de venta</label>
+                        <input type="number" step="0.01" id="armazonPrecioVenta" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="armazonStock">Stock</label>
+                    <input type="number" id="armazonStock" value="0">
                 </div>
                 <button type="submit" class="btn-primary">Guardar</button>
             </form>
