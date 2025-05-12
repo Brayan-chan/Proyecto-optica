@@ -357,6 +357,66 @@ app.post('/api/productos', async (req, res) => {
     }
 });
 
+// Actualizar un producto existente
+app.put('/api/productos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            nombre,
+            descripcion,
+            categoriaId,
+            proveedorId,
+            precioCompra,
+            precioVenta,
+            stock
+        } = req.body;
+
+        await pool.query(
+            `UPDATE productos 
+            SET nombre = ?, descripcion = ?, categoria_id = ?, 
+            proveedor_id = ?, precio_compra = ?, precio_venta = ?, stock = ? 
+            WHERE id = ?`,
+            [nombre, descripcion, categoriaId, proveedorId || null, precioCompra, precioVenta, stock || 0, id]
+        );
+
+        res.json({
+            id,
+            nombre,
+            descripcion,
+            categoriaId,
+            proveedorId,
+            precioCompra,
+            precioVenta,
+            stock
+        });
+    } catch (error) {
+        console.error('Error al actualizar producto:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
+});
+
+// Eliminar un producto
+app.delete('/api/productos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Verificar si el producto existe
+        const [producto] = await pool.query('SELECT * FROM productos WHERE id = ?', [id]);
+        
+        if (producto.length === 0) {
+            return res.status(404).json({ message: 'Producto no encontrado' });
+        }
+        
+        // Eliminar el producto
+        await pool.query('DELETE FROM productos WHERE id = ?', [id]);
+        
+        res.json({ message: 'Producto eliminado correctamente' });
+    } catch (error) {
+        console.error('Error al eliminar producto:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
+});
+
 // ===== RUTAS DE ARMAZONES =====
 // Obtener todos los armazones
 app.get('/api/armazones', async (req, res) => {
@@ -445,6 +505,71 @@ app.post('/api/armazones', async (req, res) => {
         });
     } catch (error) {
         console.error('Error al crear armazón:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
+});
+
+// Actualizar un armazón existente
+app.put('/api/armazones/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            nombre,
+            marca,
+            modelo,
+            color,
+            material,
+            precioCompra,
+            precioVenta,
+            stock,
+            proveedorId
+        } = req.body;
+
+        await pool.query(
+            `UPDATE armazones 
+            SET nombre = ?, marca = ?, modelo = ?, color = ?, 
+            material = ?, precio_compra = ?, precio_venta = ?, 
+            stock = ?, proveedor_id = ? 
+            WHERE id = ?`,
+            [nombre, marca, modelo, color, material, precioCompra, precioVenta, stock || 0, proveedorId || null, id]
+        );
+
+        res.json({
+            id,
+            nombre,
+            marca,
+            modelo,
+            color,
+            material,
+            precioCompra,
+            precioVenta,
+            stock,
+            proveedorId
+        });
+    } catch (error) {
+        console.error('Error al actualizar armazón:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
+});
+
+// Eliminar un armazón
+app.delete('/api/armazones/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Verificar si el armazón existe
+        const [armazon] = await pool.query('SELECT * FROM armazones WHERE id = ?', [id]);
+        
+        if (armazon.length === 0) {
+            return res.status(404).json({ message: 'Armazón no encontrado' });
+        }
+        
+        // Eliminar el armazón
+        await pool.query('DELETE FROM armazones WHERE id = ?', [id]);
+        
+        res.json({ message: 'Armazón eliminado correctamente' });
+    } catch (error) {
+        console.error('Error al eliminar armazón:', error);
         res.status(500).json({ message: 'Error en el servidor' });
     }
 });
@@ -971,6 +1096,73 @@ app.get('/api/categorias', async (req, res) => {
     }
 });
 
+// Crear una nueva categoría
+app.post('/api/categorias', async (req, res) => {
+    try {
+        const { nombre, descripcion } = req.body;
+        
+        const [result] = await pool.query(
+            'INSERT INTO categorias (nombre, descripcion) VALUES (?, ?)',
+            [nombre, descripcion || null]
+        );
+        
+        res.status(201).json({
+            id: result.insertId,
+            nombre,
+            descripcion
+        });
+    } catch (error) {
+        console.error('Error al crear categoría:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
+});
+
+// Actualizar una categoría
+app.put('/api/categorias/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, descripcion } = req.body;
+        
+        await pool.query(
+            'UPDATE categorias SET nombre = ?, descripcion = ? WHERE id = ?',
+            [nombre, descripcion || null, id]
+        );
+        
+        res.json({
+            id: parseInt(id),
+            nombre,
+            descripcion
+        });
+    } catch (error) {
+        console.error('Error al actualizar categoría:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
+});
+
+// Eliminar una categoría
+app.delete('/api/categorias/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Verificar si hay productos asociados a esta categoría
+        const [productos] = await pool.query('SELECT COUNT(*) as count FROM productos WHERE categoria_id = ?', [id]);
+        
+        if (productos[0].count > 0) {
+            return res.status(400).json({ 
+                message: 'No se puede eliminar la categoría porque tiene productos asociados' 
+            });
+        }
+        
+        // Eliminar la categoría
+        await pool.query('DELETE FROM categorias WHERE id = ?', [id]);
+        
+        res.json({ message: 'Categoría eliminada correctamente' });
+    } catch (error) {
+        console.error('Error al eliminar categoría:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
+});
+
 // ===== RUTAS DE PROVEEDORES =====
 // Obtener todos los proveedores
 app.get('/api/proveedores', async (req, res) => {
@@ -979,6 +1171,84 @@ app.get('/api/proveedores', async (req, res) => {
         res.json(rows);
     } catch (error) {
         console.error('Error al obtener proveedores:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
+});
+
+// Crear un nuevo proveedor
+app.post('/api/proveedores', async (req, res) => {
+    try {
+        const { nombre, contacto, telefono, email, direccion } = req.body;
+        
+        const [result] = await pool.query(
+            `INSERT INTO proveedores 
+            (nombre, contacto, telefono, email, direccion) 
+            VALUES (?, ?, ?, ?, ?)`,
+            [nombre, contacto || null, telefono || null, email || null, direccion || null]
+        );
+        
+        res.status(201).json({
+            id: result.insertId,
+            nombre,
+            contacto,
+            telefono,
+            email,
+            direccion
+        });
+    } catch (error) {
+        console.error('Error al crear proveedor:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
+});
+
+// Actualizar un proveedor
+app.put('/api/proveedores/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, contacto, telefono, email, direccion } = req.body;
+        
+        await pool.query(
+            `UPDATE proveedores 
+            SET nombre = ?, contacto = ?, telefono = ?, email = ?, direccion = ? 
+            WHERE id = ?`,
+            [nombre, contacto || null, telefono || null, email || null, direccion || null, id]
+        );
+        
+        res.json({
+            id: parseInt(id),
+            nombre,
+            contacto,
+            telefono,
+            email,
+            direccion
+        });
+    } catch (error) {
+        console.error('Error al actualizar proveedor:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
+});
+
+// Eliminar un proveedor
+app.delete('/api/proveedores/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Verificar si hay productos o armazones asociados a este proveedor
+        const [productos] = await pool.query('SELECT COUNT(*) as count FROM productos WHERE proveedor_id = ?', [id]);
+        const [armazones] = await pool.query('SELECT COUNT(*) as count FROM armazones WHERE proveedor_id = ?', [id]);
+        
+        if (productos[0].count > 0 || armazones[0].count > 0) {
+            return res.status(400).json({ 
+                message: 'No se puede eliminar el proveedor porque tiene productos o armazones asociados' 
+            });
+        }
+        
+        // Eliminar el proveedor
+        await pool.query('DELETE FROM proveedores WHERE id = ?', [id]);
+        
+        res.json({ message: 'Proveedor eliminado correctamente' });
+    } catch (error) {
+        console.error('Error al eliminar proveedor:', error);
         res.status(500).json({ message: 'Error en el servidor' });
     }
 });
