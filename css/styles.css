@@ -301,3 +301,14 @@ body {
     }
 }
 
+.logo {
+    position: relative;
+    left: 50px;
+}
+
+#logo {
+    border-radius: 40%;
+    width: 50px;
+    position: absolute;
+    left: 10px;
+}
