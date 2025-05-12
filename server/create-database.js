@@ -1,11 +1,14 @@
 import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 async function createDatabase() {
   // Configuración de la conexión a la base de datos
   const connection = await mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '', // Por defecto en XAMPP no tiene contraseña
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '', // Por defecto en XAMPP no tiene contraseña
   });
 
   try {
