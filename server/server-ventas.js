@@ -1,9 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.DB_PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -12,10 +15,10 @@ app.use(express.static('./')); // Sirve los archivos estáticos desde la carpeta
 
 // Configuración de la conexión a la base de datos
 const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '', // Por defecto en XAMPP no tiene contraseña
-    database: 'optica_db',
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '', // Por defecto en XAMPP no tiene contraseña
+    database: process.env.DB_NAME || 'optica_db',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
