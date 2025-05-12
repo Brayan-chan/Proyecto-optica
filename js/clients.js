@@ -1,94 +1,98 @@
 document.addEventListener('DOMContentLoaded', async function() {
-    // Cargar clientes desde la API
-    try {
-        const response = await fetch('http://localhost:3000/api/clientes');
-        const clientsData = await response.json();
-        
-        // Llenar la tabla de clientes
-        const tableBody = document.getElementById('clientsTableBody');
-        tableBody.innerHTML = ''; // Limpiar tabla
-        
-        clientsData.forEach(client => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${client.id}</td>
-                <td>${client.nombre}</td>
-                <td>${client.telefono || ''}</td>
-                <td>${client.email || ''}</td>
-                <td>${client.ultima_visita || 'N/A'}</td>
-                <td>
-                    <button class="btn-view" data-id="${client.id}">Ver</button>
-                    <button class="btn-edit" data-id="${client.id}">Editar</button>
-                </td>
-            `;
-            tableBody.appendChild(row);
-        });
-    } catch (error) {
-        console.error('Error al cargar clientes:', error);
-        alert('Error al cargar los datos de clientes');
-    }
+    // Cargar datos iniciales
+    await cargarDatos();
     
-    // Cargar empresas para el select de convenios
+    // Configurar eventos para los formularios
+    configurarFormularios();
+    
+    // Configurar eventos para los botones de acciones
+    configurarBotonesAcciones();
+    
+    // Configurar eventos para las búsquedas
+    configurarBusquedas();
+    
+    // Configurar eventos para cerrar modales
+    configurarModales();
+});
+
+// Función para cargar todos los datos necesarios
+async function cargarDatos() {
     try {
-        const response = await fetch('http://localhost:3000/api/empresas');
-        const empresas = await response.json();
+        // Cargar clientes
+        const clientesResponse = await fetch('http://localhost:3000/api/clientes');
+        const clientes = await clientesResponse.json();
+        llenarTablaClientes(clientes);
         
-        // Agregar campo de empresa al formulario si no existe
-        const formGroup = document.createElement('div');
-        formGroup.className = 'form-group';
-        formGroup.innerHTML = `
-            <label for="clientEmpresa">Empresa (Convenio)</label>
-            <select id="clientEmpresa">
-                <option value="">Sin convenio</option>
-                ${empresas.map(empresa => `<option value="${empresa.id}">${empresa.nombre}</option>`).join('')}
-            </select>
-        `;
-        
-        // Insertar después del campo de dirección
-        const direccionField = document.getElementById('clientAddress');
-        if (direccionField) {
-            const parentNode = direccionField.closest('.form-group');
-            parentNode.parentNode.insertBefore(formGroup, parentNode.nextSibling);
-        }
-        
-        // Agregar checkbox de convenio
-        const convenioGroup = document.createElement('div');
-        convenioGroup.className = 'form-group';
-        convenioGroup.innerHTML = `
-            <label for="clientConvenio">
-                <input type="checkbox" id="clientConvenio"> Cliente con convenio
-            </label>
-        `;
-        
-        // Insertar después del campo de empresa
-        const empresaField = document.getElementById('clientEmpresa');
-        if (empresaField) {
-            const parentNode = empresaField.closest('.form-group');
-            parentNode.parentNode.insertBefore(convenioGroup, parentNode.nextSibling);
-        }
+        // Cargar empresas para el select de convenios
+        const empresasResponse = await fetch('http://localhost:3000/api/empresas');
+        const empresas = await empresasResponse.json();
+        llenarSelectEmpresas(empresas);
         
     } catch (error) {
-        console.error('Error al cargar empresas:', error);
+        console.error('Error al cargar datos:', error);
+        mostrarAlerta('Error al cargar los datos. Por favor, verifica la conexión con el servidor.', 'error');
     }
+}
+
+// Función para llenar la tabla de clientes
+function llenarTablaClientes(clientes) {
+    const clientsTableBody = document.getElementById('clientsTableBody');
+    clientsTableBody.innerHTML = ''; // Limpiar tabla
     
-    // Mostrar modal para nuevo cliente
-    document.getElementById('addClientBtn').addEventListener('click', function() {
-        document.getElementById('modalTitle').textContent = 'Nuevo Cliente';
-        document.getElementById('clientForm').reset();
-        document.getElementById('clientId').value = '';
+    clientes.forEach(client => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-lightGray dark:hover:bg-gray-700 transition-colors';
         
-        // Resetear campos de convenio
-        if (document.getElementById('clientEmpresa')) {
-            document.getElementById('clientEmpresa').value = '';
-        }
-        if (document.getElementById('clientConvenio')) {
-            document.getElementById('clientConvenio').checked = false;
-        }
-        
-        document.getElementById('clientModal').style.display = 'block';
+        row.innerHTML = `
+            <td class="py-3 px-4">${client.id}</td>
+            <td class="py-3 px-4 font-medium">${client.nombre}</td>
+            <td class="py-3 px-4">${client.telefono || '-'}</td>
+            <td class="py-3 px-4">${client.email || '-'}</td>
+            <td class="py-3 px-4">${client.ultima_visita || 'N/A'}</td>
+            <td class="py-3 px-4">
+                <div class="flex space-x-2">
+                    <button class="btn-view btn-action bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded-md flex items-center" data-id="${client.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Ver
+                    </button>
+                    <button class="btn-edit btn-action bg-amber-500 hover:bg-amber-600 text-white py-1 px-2 rounded-md flex items-center" data-id="${client.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Editar
+                    </button>
+                    <button class="btn-delete btn-action bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded-md flex items-center" data-id="${client.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Eliminar
+                    </button>
+                </div>
+            </td>
+        `;
+        clientsTableBody.appendChild(row);
     });
+}
+
+// Función para llenar el select de empresas
+function llenarSelectEmpresas(empresas) {
+    const empresaSelect = document.getElementById('clientEmpresa');
+    empresaSelect.innerHTML = '<option value="">Sin convenio</option>';
     
-    // Manejar envío del formulario
+    empresas.forEach(empresa => {
+        const option = document.createElement('option');
+        option.value = empresa.id;
+        option.textContent = empresa.nombre;
+        empresaSelect.appendChild(option);
+    });
+}
+
+// Configurar eventos para los formularios
+function configurarFormularios() {
+    // Formulario de cliente
     document.getElementById('clientForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -99,9 +103,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             email: document.getElementById('clientEmail').value,
             direccion: document.getElementById('clientAddress').value,
             fechaNacimiento: document.getElementById('clientBirthdate').value,
-            // Nuevos campos para la estructura actualizada
-            empresaId: document.getElementById('clientEmpresa')?.value || null,
-            convenio: document.getElementById('clientConvenio')?.checked || false
+            empresaId: document.getElementById('clientEmpresa').value || null,
+            convenio: document.getElementById('clientConvenio').checked || false
         };
         
         try {
@@ -128,122 +131,261 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             
             if (response.ok) {
-                alert('Cliente guardado correctamente');
+                mostrarAlerta(`Cliente ${clientId ? 'actualizado' : 'creado'} correctamente`, 'success');
                 document.getElementById('clientModal').style.display = 'none';
-                // Recargar la página para mostrar los cambios
-                location.reload();
+                await cargarDatos(); // Recargar datos
             } else {
                 const error = await response.json();
-                alert(`Error: ${error.message}`);
+                mostrarAlerta(`Error: ${error.message}`, 'error');
             }
         } catch (error) {
             console.error('Error al guardar cliente:', error);
-            alert('Error al conectar con el servidor');
+            mostrarAlerta('Error al conectar con el servidor', 'error');
         }
     });
     
-    // Manejar clics en botones de la tabla
+    // Evento para el checkbox de convenio
+    document.getElementById('clientConvenio').addEventListener('change', function() {
+        const empresaGroup = document.getElementById('clientEmpresaGroup');
+        if (this.checked) {
+            empresaGroup.classList.remove('opacity-50');
+            document.getElementById('clientEmpresa').disabled = false;
+        } else {
+            empresaGroup.classList.add('opacity-50');
+            document.getElementById('clientEmpresa').disabled = true;
+            document.getElementById('clientEmpresa').value = '';
+        }
+    });
+}
+
+// Configurar eventos para los botones de acciones
+function configurarBotonesAcciones() {
+    // Botón agregar cliente
+    document.getElementById('addClientBtn').addEventListener('click', function() {
+        document.getElementById('modalTitle').textContent = 'Nuevo Cliente';
+        document.getElementById('clientForm').reset();
+        document.getElementById('clientId').value = '';
+        
+        // Resetear campos de convenio
+        document.getElementById('clientEmpresa').value = '';
+        document.getElementById('clientConvenio').checked = false;
+        document.getElementById('clientEmpresaGroup').classList.add('opacity-50');
+        document.getElementById('clientEmpresa').disabled = true;
+        
+        document.getElementById('clientModal').style.display = 'block';
+    });
+    
+    // Botones para clientes (ver, editar, eliminar)
     document.getElementById('clientsTableBody').addEventListener('click', async function(e) {
-        if (!e.target.classList.contains('btn-view') && !e.target.classList.contains('btn-edit')) {
-            return;
+        // Botón ver cliente
+        if (e.target.closest('.btn-view')) {
+            const id = e.target.closest('.btn-view').getAttribute('data-id');
+            await verCliente(id);
         }
         
-        const id = e.target.getAttribute('data-id');
+        // Botón editar cliente
+        if (e.target.closest('.btn-edit')) {
+            const id = e.target.closest('.btn-edit').getAttribute('data-id');
+            await editarCliente(id);
+        }
         
-        try {
-            const response = await fetch(`http://localhost:3000/api/clientes/${id}`);
-            const client = await response.json();
-            
-            if (e.target.classList.contains('btn-view')) {
-                // Mostrar tarjeta de cliente
-                document.getElementById('cardClientName').textContent = client.nombre;
-                document.getElementById('cardClientPhone').textContent = client.telefono || 'N/A';
-                document.getElementById('cardClientEmail').textContent = client.email || 'N/A';
-                document.getElementById('cardClientAddress').textContent = client.direccion || 'N/A';
-                document.getElementById('cardClientBirthdate').textContent = client.fecha_nacimiento || 'N/A';
-                
-                // Agregar información de convenio si existe
-                const clientInfoDiv = document.querySelector('.client-info');
-                const convenioInfo = document.createElement('p');
-                convenioInfo.innerHTML = `<strong>Convenio:</strong> <span id="cardClientConvenio">${client.convenio ? 'Sí' : 'No'}</span>`;
-                
-                const empresaInfo = document.createElement('p');
-                empresaInfo.innerHTML = `<strong>Empresa:</strong> <span id="cardClientEmpresa">${client.empresa_nombre || 'N/A'}</span>`;
-                
-                // Eliminar elementos previos si existen
-                const prevConvenio = document.getElementById('cardClientConvenio')?.closest('p');
-                const prevEmpresa = document.getElementById('cardClientEmpresa')?.closest('p');
-                
-                if (prevConvenio) prevConvenio.remove();
-                if (prevEmpresa) prevEmpresa.remove();
-                
-                clientInfoDiv.appendChild(convenioInfo);
-                clientInfoDiv.appendChild(empresaInfo);
-                
-                // Cargar historial de compras
-                try {
-                    const salesResponse = await fetch(`http://localhost:3000/api/ventas?clienteId=${id}`);
-                    const sales = await salesResponse.json();
-                    
-                    const historyBody = document.getElementById('clientHistoryBody');
-                    historyBody.innerHTML = '';
-                    
-                    if (sales.length === 0) {
-                        const row = document.createElement('tr');
-                        row.innerHTML = '<td colspan="4">No hay compras registradas</td>';
-                        historyBody.appendChild(row);
-                    } else {
-                        sales.forEach(sale => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${sale.fecha}</td>
-                                <td>${sale.receta_id ? 'Receta' : 'Productos'}</td>
-                                <td>${sale.estado}</td>
-                                <td>$${parseFloat(sale.total).toFixed(2)}</td>
-                            `;
-                            historyBody.appendChild(row);
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error al cargar historial de compras:', error);
-                }
-                
-                document.getElementById('clientCardModal').style.display = 'block';
-            }
-            
-            if (e.target.classList.contains('btn-edit')) {
-                // Mostrar modal de edición con datos del cliente
-                document.getElementById('modalTitle').textContent = 'Editar Cliente';
-                document.getElementById('clientId').value = client.id;
-                document.getElementById('clientName').value = client.nombre;
-                document.getElementById('clientPhone').value = client.telefono || '';
-                document.getElementById('clientEmail').value = client.email || '';
-                document.getElementById('clientAddress').value = client.direccion || '';
-                document.getElementById('clientBirthdate').value = client.fecha_nacimiento || '';
-                
-                // Actualizar campos de convenio
-                if (document.getElementById('clientEmpresa')) {
-                    document.getElementById('clientEmpresa').value = client.empresa_id || '';
-                }
-                if (document.getElementById('clientConvenio')) {
-                    document.getElementById('clientConvenio').checked = client.convenio || false;
-                }
-                
-                document.getElementById('clientModal').style.display = 'block';
-            }
-        } catch (error) {
-            console.error('Error al cargar datos del cliente:', error);
-            alert('Error al cargar los datos del cliente');
+        // Botón eliminar cliente
+        if (e.target.closest('.btn-delete')) {
+            const id = e.target.closest('.btn-delete').getAttribute('data-id');
+            await eliminarCliente(id);
         }
     });
     
-    // Manejar cierre de modal de tarjeta
-    document.getElementById('closeCardBtn').addEventListener('click', function() {
-        document.getElementById('clientCardModal').style.display = 'none';
-    });
-    
-    // Manejar impresión de tarjeta
+    // Botón imprimir tarjeta
     document.getElementById('printCardBtn').addEventListener('click', function() {
         window.print();
     });
-});
+    
+    // Botón cerrar tarjeta
+    document.getElementById('closeCardBtn').addEventListener('click', function() {
+        document.getElementById('clientCardModal').style.display = 'none';
+    });
+}
+
+// Función para ver un cliente
+async function verCliente(id) {
+    try {
+        const response = await fetch(`http://localhost:3000/api/clientes/${id}`);
+        const client = await response.json();
+        
+        // Mostrar tarjeta de cliente
+        document.getElementById('cardClientName').textContent = client.nombre;
+        document.getElementById('cardClientPhone').textContent = client.telefono || 'N/A';
+        document.getElementById('cardClientEmail').textContent = client.email || 'N/A';
+        document.getElementById('cardClientAddress').textContent = client.direccion || 'N/A';
+        document.getElementById('cardClientBirthdate').textContent = client.fecha_nacimiento || 'N/A';
+        
+        // Información de convenio
+        document.getElementById('cardClientConvenio').textContent = client.convenio ? 'Sí' : 'No';
+        document.getElementById('cardClientEmpresa').textContent = client.empresa_nombre || 'N/A';
+        
+        // Cargar historial de compras
+        try {
+            // Usamos el endpoint existente de ventas con el filtro de clienteId
+            // Este endpoint ya está implementado en tu servidor
+            const salesResponse = await fetch(`http://localhost:3000/api/ventas?clienteId=${id}`);
+            const sales = await salesResponse.json();
+            
+            const historyBody = document.getElementById('clientHistoryBody');
+            historyBody.innerHTML = '';
+            
+            if (sales.length === 0) {
+                const row = document.createElement('tr');
+                row.className = 'text-center';
+                row.innerHTML = '<td colspan="4" class="py-4">No hay compras registradas</td>';
+                historyBody.appendChild(row);
+            } else {
+                sales.forEach(sale => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-lightGray dark:hover:bg-gray-700';
+                    row.innerHTML = `
+                        <td class="py-2 px-4">${sale.fecha}</td>
+                        <td class="py-2 px-4">${sale.receta_id ? 'Receta' : 'Productos'}</td>
+                        <td class="py-2 px-4">
+                            <span class="status-${sale.estado.toLowerCase()}">${sale.estado}</span>
+                        </td>
+                        <td class="py-2 px-4 font-medium">$${parseFloat(sale.total).toFixed(2)}</td>
+                    `;
+                    historyBody.appendChild(row);
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar historial de compras:', error);
+            const historyBody = document.getElementById('clientHistoryBody');
+            historyBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-red-500">Error al cargar el historial de compras</td></tr>';
+        }
+        
+        document.getElementById('clientCardModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error al cargar datos del cliente:', error);
+        // Assuming mostrarAlerta is defined elsewhere or needs to be defined here.
+        // For example:
+        function mostrarAlerta(message, type) {
+            // Implement your alert logic here.  This is a placeholder.
+            console.log(`${type}: ${message}`);
+            alert(`${type}: ${message}`); // Basic alert as an example
+        }
+        mostrarAlerta('Error al cargar los datos del cliente', 'error');
+    }
+}
+
+// Función para editar un cliente
+async function editarCliente(id) {
+    try {
+        const response = await fetch(`http://localhost:3000/api/clientes/${id}`);
+        const client = await response.json();
+        
+        // Mostrar modal de edición con datos del cliente
+        document.getElementById('modalTitle').textContent = 'Editar Cliente';
+        document.getElementById('clientId').value = client.id;
+        document.getElementById('clientName').value = client.nombre;
+        document.getElementById('clientPhone').value = client.telefono || '';
+        document.getElementById('clientEmail').value = client.email || '';
+        document.getElementById('clientAddress').value = client.direccion || '';
+        document.getElementById('clientBirthdate').value = client.fecha_nacimiento || '';
+        
+        // Actualizar campos de convenio
+        document.getElementById('clientConvenio').checked = client.convenio || false;
+        
+        if (client.convenio) {
+            document.getElementById('clientEmpresaGroup').classList.remove('opacity-50');
+            document.getElementById('clientEmpresa').disabled = false;
+            document.getElementById('clientEmpresa').value = client.empresa_id || '';
+        } else {
+            document.getElementById('clientEmpresaGroup').classList.add('opacity-50');
+            document.getElementById('clientEmpresa').disabled = true;
+            document.getElementById('clientEmpresa').value = '';
+        }
+        
+        document.getElementById('clientModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error al cargar datos del cliente:', error);
+        mostrarAlerta('Error al cargar los datos del cliente', 'error');
+    }
+}
+
+// Función para eliminar un cliente
+async function eliminarCliente(id) {
+    if (confirm('¿Estás seguro de que deseas eliminar este cliente?')) {
+        try {
+            const response = await fetch(`http://localhost:3000/api/clientes/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                mostrarAlerta('Cliente eliminado correctamente', 'success');
+                await cargarDatos(); // Recargar datos
+            } else {
+                const error = await response.json();
+                mostrarAlerta(`Error: ${error.message}`, 'error');
+            }
+        } catch (error) {
+            console.error('Error al eliminar cliente:', error);
+            mostrarAlerta('Error al conectar con el servidor', 'error');
+        }
+    }
+}
+
+// Configurar eventos para las búsquedas
+function configurarBusquedas() {
+    document.getElementById('searchClienteBtn').addEventListener('click', function() {
+        buscarClientes();
+    });
+    
+    document.getElementById('searchCliente').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            buscarClientes();
+        }
+    });
+}
+
+// Función para buscar clientes
+async function buscarClientes() {
+    const searchTerm = document.getElementById('searchCliente').value.trim();
+    
+    try {
+        let url = 'http://localhost:3000/api/clientes';
+        if (searchTerm) {
+            url += `?nombre=${encodeURIComponent(searchTerm)}`;
+        }
+        
+        const response = await fetch(url);
+        const clientes = await response.json();
+        
+        llenarTablaClientes(clientes);
+    } catch (error) {
+        console.error('Error al buscar clientes:', error);
+        mostrarAlerta('Error al buscar clientes', 'error');
+    }
+}
+
+// Configurar eventos para cerrar modales
+function configurarModales() {
+    // Cerrar modales con botón X o botón Cancelar
+    document.querySelectorAll('.close, .close-modal').forEach(closeBtn => {
+        closeBtn.addEventListener('click', function() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        });
+    });
+    
+    // Cerrar modales al hacer clic fuera de ellos
+    window.addEventListener('click', function(e) {
+        document.querySelectorAll('.modal').forEach(modal => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+}
+
+// Función para mostrar alertas
+function mostrarAlerta(mensaje, tipo) {
+    alert(mensaje);
+}
