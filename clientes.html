@@ -164,6 +164,36 @@
                 </button>
             </div>
         </div>
+        
+        <!-- Filtros Panel (inicialmente oculto) -->
+        <div id="filtrosPanel" class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-card mb-6" style="display: none;">
+            <h3 class="text-lg font-semibold mb-3">Filtros avanzados</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="form-group">
+                    <label for="filtroConvenio" class="block mb-1 font-medium">Convenio</label>
+                    <select id="filtroConvenio" class="w-full p-2 border border-mediumGray rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600">
+                        <option value="">Todos</option>
+                        <option value="true">Con convenio</option>
+                        <option value="false">Sin convenio</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filtroEmpresa" class="block mb-1 font-medium">Empresa</label>
+                    <select id="filtroEmpresa" class="w-full p-2 border border-mediumGray rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600">
+                        <option value="">Todas</option>
+                        <!-- Se llenará dinámicamente -->
+                    </select>
+                </div>
+                <div class="form-group flex items-end">
+                    <button id="aplicarFiltrosBtn" class="btn-action bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow-sm flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                        Aplicar filtros
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Clients Table -->
         <div class="overflow-x-auto shadow-card rounded-lg">
@@ -182,6 +212,19 @@
                     <!-- Data will be loaded dynamically -->
                 </tbody>
             </table>
+        </div>
+        
+        <!-- Paginación -->
+        <div class="pagination flex justify-center mt-6">
+            <button id="prevPageBtn" class="py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-l hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50" disabled>
+                Anterior
+            </button>
+            <div id="pageInfo" class="py-2 px-4 bg-white dark:bg-gray-800 border-t border-b border-mediumGray dark:border-gray-700">
+                Página <span id="currentPage">1</span> de <span id="totalPages">1</span>
+            </div>
+            <button id="nextPageBtn" class="py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-r hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50" disabled>
+                Siguiente
+            </button>
         </div>
     </main>
 
@@ -221,9 +264,9 @@
                         <label for="clientBirthdate" class="block mb-1 font-medium">Fecha de nacimiento</label>
                         <input type="date" id="clientBirthdate" class="w-full p-2 border border-mediumGray rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600">
                     </div>
-                    <div class="form-group" id="clientEmpresaGroup">
+                    <div class="form-group opacity-50" id="clientEmpresaGroup">
                         <label for="clientEmpresa" class="block mb-1 font-medium">Empresa (Convenio)</label>
-                        <select id="clientEmpresa" class="w-full p-2 border border-mediumGray rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600">
+                        <select id="clientEmpresa" class="w-full p-2 border border-mediumGray rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600" disabled>
                             <option value="">Sin convenio</option>
                             <!-- Options will be loaded dynamically -->
                         </select>
@@ -281,28 +324,104 @@
                     </div>
                 </div>
                 
-                <!-- Purchase History Section -->
-                <div class="client-history">
-                    <h4 class="text-lg font-semibold mb-3 border-b border-mediumGray dark:border-gray-700 pb-2">Historial de compras</h4>
-                    <div class="overflow-x-auto max-h-80 overflow-y-auto">
-                        <table class="data-table w-full bg-white dark:bg-gray-800 rounded-lg">
-                            <thead>
-                                <tr>
-                                    <th class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tl-lg">Fecha</th>
-                                    <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Producto</th>
-                                    <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Estado</th>
-                                    <th class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tr-lg">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="clientHistoryBody" class="divide-y divide-mediumGray dark:divide-gray-700">
-                                <!-- Data will be loaded dynamically -->
-                            </tbody>
-                        </table>
+                <!-- Tabs para historial -->
+                <div class="client-history-tabs">
+                    <div class="flex border-b border-mediumGray dark:border-gray-700">
+                        <button class="history-tab-btn py-2 px-4 mr-2 font-medium relative active" data-tab="compras">
+                            Compras
+                            <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary"></span>
+                        </button>
+                        <button class="history-tab-btn py-2 px-4 mr-2 font-medium relative" data-tab="recetas">
+                            Recetas
+                            <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary opacity-0"></span>
+                        </button>
+                        <button class="history-tab-btn py-2 px-4 mr-2 font-medium relative" data-tab="citas">
+                            Citas
+                            <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary opacity-0"></span>
+                        </button>
+                    </div>
+                    
+                    <!-- Historial de compras -->
+                    <div class="history-tab-content" id="compras-tab">
+                        <h4 class="text-lg font-semibold my-3">Historial de compras</h4>
+                        <div class="overflow-x-auto max-h-80 overflow-y-auto">
+                            <table class="data-table w-full bg-white dark:bg-gray-800 rounded-lg">
+                                <thead>
+                                    <tr>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tl-lg">Fecha</th>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Producto</th>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Estado</th>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tr-lg">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientHistoryBody" class="divide-y divide-mediumGray dark:divide-gray-700">
+                                    <!-- Data will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Historial de recetas -->
+                    <div class="history-tab-content" id="recetas-tab" style="display: none;">
+                        <h4 class="text-lg font-semibold my-3">Historial de recetas</h4>
+                        <div class="overflow-x-auto max-h-80 overflow-y-auto">
+                            <table class="data-table w-full bg-white dark:bg-gray-800 rounded-lg">
+                                <thead>
+                                    <tr>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tl-lg">Fecha</th>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Ojo Izq.</th>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Ojo Der.</th>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tr-lg">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientRecetasBody" class="divide-y divide-mediumGray dark:divide-gray-700">
+                                    <!-- Data will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Historial de citas -->
+                    <div class="history-tab-content" id="citas-tab" style="display: none;">
+                        <h4 class="text-lg font-semibold my-3">Historial de citas</h4>
+                        <div class="overflow-x-auto max-h-80 overflow-y-auto">
+                            <table class="data-table w-full bg-white dark:bg-gray-800 rounded-lg">
+                                <thead>
+                                    <tr>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tl-lg">Fecha</th>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Motivo</th>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Estado</th>
+                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tr-lg">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientCitasBody" class="divide-y divide-mediumGray dark:divide-gray-700">
+                                    <!-- Data will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 
                 <!-- Actions Section -->
                 <div class="client-actions flex justify-end space-x-4 pt-4 border-t border-mediumGray dark:border-gray-700">
+                    <button class="btn-action bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded transition-colors flex items-center" id="newSaleBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Nueva venta
+                    </button>
+                    <button class="btn-action bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors flex items-center" id="newRecetaBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Nueva receta
+                    </button>
+                    <button class="btn-action bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded transition-colors flex items-center" id="newCitaBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Nueva cita
+                    </button>
                     <button class="btn-primary py-2 px-4 bg-primary hover:bg-primary/80 text-white rounded transition-colors flex items-center" id="printCardBtn">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -321,300 +440,7 @@
     </div>
 
     <script src="js/main.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Cargar clientes desde la API
-            try {
-                const response = await fetch('http://localhost:3000/api/clientes');
-                const clientsData = await response.json();
-                
-                // Llenar la tabla de clientes
-                const tableBody = document.getElementById('clientsTableBody');
-                tableBody.innerHTML = ''; // Limpiar tabla
-                
-                clientsData.forEach(client => {
-                    const row = document.createElement('tr');
-                    row.className = 'hover:bg-lightGray dark:hover:bg-gray-700 transition-colors';
-                    
-                    row.innerHTML = `
-                        <td class="py-3 px-4">${client.id}</td>
-                        <td class="py-3 px-4 font-medium">${client.nombre}</td>
-                        <td class="py-3 px-4">${client.telefono || '-'}</td>
-                        <td class="py-3 px-4">${client.email || '-'}</td>
-                        <td class="py-3 px-4">${client.ultima_visita || 'N/A'}</td>
-                        <td class="py-3 px-4">
-                            <div class="flex space-x-2">
-                                <button class="btn-view btn-action bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded-md flex items-center" data-id="${client.id}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                    Ver
-                                </button>
-                                <button class="btn-edit btn-action bg-amber-500 hover:bg-amber-600 text-white py-1 px-2 rounded-md flex items-center" data-id="${client.id}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                    Editar
-                                </button>
-                            </div>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            } catch (error) {
-                console.error('Error al cargar clientes:', error);
-                alert('Error al cargar los datos de clientes');
-            }
-            
-            // Cargar empresas para el select de convenios
-            try {
-                const response = await fetch('http://localhost:3000/api/empresas');
-                const empresas = await response.json();
-                
-                // Llenar el select de empresas para convenios
-                const empresaSelect = document.getElementById('clientEmpresa');
-                empresaSelect.innerHTML = '<option value="">Sin convenio</option>';
-                
-                empresas.forEach(empresa => {
-                    const option = document.createElement('option');
-                    option.value = empresa.id;
-                    option.textContent = empresa.nombre;
-                    empresaSelect.appendChild(option);
-                });
-                
-            } catch (error) {
-                console.error('Error al cargar empresas:', error);
-            }
-            
-            // Mostrar modal para nuevo cliente
-            document.getElementById('addClientBtn').addEventListener('click', function() {
-                document.getElementById('modalTitle').textContent = 'Nuevo Cliente';
-                document.getElementById('clientForm').reset();
-                document.getElementById('clientId').value = '';
-                
-                // Resetear campos de convenio
-                if (document.getElementById('clientEmpresa')) {
-                    document.getElementById('clientEmpresa').value = '';
-                }
-                if (document.getElementById('clientConvenio')) {
-                    document.getElementById('clientConvenio').checked = false;
-                }
-                
-                document.getElementById('clientModal').style.display = 'block';
-            });
-            
-            // Manejar envío del formulario
-            document.getElementById('clientForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const clientId = document.getElementById('clientId').value;
-                const clientData = {
-                    nombre: document.getElementById('clientName').value,
-                    telefono: document.getElementById('clientPhone').value,
-                    email: document.getElementById('clientEmail').value,
-                    direccion: document.getElementById('clientAddress').value,
-                    fechaNacimiento: document.getElementById('clientBirthdate').value,
-                    empresaId: document.getElementById('clientEmpresa').value || null,
-                    convenio: document.getElementById('clientConvenio').checked || false
-                };
-                
-                try {
-                    let response;
-                    
-                    if (clientId) {
-                        // Actualizar cliente existente
-                        response = await fetch(`http://localhost:3000/api/clientes/${clientId}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(clientData)
-                        });
-                    } else {
-                        // Crear nuevo cliente
-                        response = await fetch('http://localhost:3000/api/clientes', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(clientData)
-                        });
-                    }
-                    
-                    if (response.ok) {
-                        alert('Cliente guardado correctamente');
-                        document.getElementById('clientModal').style.display = 'none';
-                        // Recargar la página para mostrar los cambios
-                        location.reload();
-                    } else {
-                        const error = await response.json();
-                        alert(`Error: ${error.message}`);
-                    }
-                } catch (error) {
-                    console.error('Error al guardar cliente:', error);
-                    alert('Error al conectar con el servidor');
-                }
-            });
-            
-            // Manejar clics en botones de la tabla
-            document.getElementById('clientsTableBody').addEventListener('click', async function(e) {
-                const btnView = e.target.closest('.btn-view');
-                const btnEdit = e.target.closest('.btn-edit');
-                
-                if (!btnView && !btnEdit) {
-                    return;
-                }
-                
-                let id;
-                if (btnView) id = btnView.getAttribute('data-id');
-                if (btnEdit) id = btnEdit.getAttribute('data-id');
-                
-                try {
-                    const response = await fetch(`http://localhost:3000/api/clientes/${id}`);
-                    const client = await response.json();
-                    
-                    if (btnView) {
-                        // Mostrar tarjeta de cliente
-                        document.getElementById('cardClientName').textContent = client.nombre;
-                        document.getElementById('cardClientPhone').textContent = client.telefono || 'N/A';
-                        document.getElementById('cardClientEmail').textContent = client.email || 'N/A';
-                        document.getElementById('cardClientAddress').textContent = client.direccion || 'N/A';
-                        document.getElementById('cardClientBirthdate').textContent = client.fecha_nacimiento || 'N/A';
-                        
-                        // Información de convenio
-                        document.getElementById('cardClientConvenio').textContent = client.convenio ? 'Sí' : 'No';
-                        document.getElementById('cardClientEmpresa').textContent = client.empresa_nombre || 'N/A';
-                        
-                        // Cargar historial de compras
-                        try {
-                            const salesResponse = await fetch(`http://localhost:3000/api/ventas?clienteId=${id}`);
-                            const sales = await salesResponse.json();
-                            
-                            const historyBody = document.getElementById('clientHistoryBody');
-                            historyBody.innerHTML = '';
-                            
-                            if (sales.length === 0) {
-                                const row = document.createElement('tr');
-                                row.className = 'text-center';
-                                row.innerHTML = '<td colspan="4" class="py-4">No hay compras registradas</td>';
-                                historyBody.appendChild(row);
-                            } else {
-                                sales.forEach(sale => {
-                                    const row = document.createElement('tr');
-                                    row.className = 'hover:bg-lightGray dark:hover:bg-gray-700';
-                                    row.innerHTML = `
-                                        <td class="py-2 px-4">${sale.fecha}</td>
-                                        <td class="py-2 px-4">${sale.receta_id ? 'Receta' : 'Productos'}</td>
-                                        <td class="py-2 px-4">
-                                            <span class="status-${sale.estado.toLowerCase()}">${sale.estado}</span>
-                                        </td>
-                                        <td class="py-2 px-4 font-medium">$${parseFloat(sale.total).toFixed(2)}</td>
-                                    `;
-                                    historyBody.appendChild(row);
-                                });
-                            }
-                        } catch (error) {
-                            console.error('Error al cargar historial de compras:', error);
-                            const historyBody = document.getElementById('clientHistoryBody');
-                            historyBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-red-500">Error al cargar el historial de compras</td></tr>';
-                        }
-                        
-                        document.getElementById('clientCardModal').style.display = 'block';
-                    }
-                    
-                    if (btnEdit) {
-                        // Mostrar modal de edición con datos del cliente
-                        document.getElementById('modalTitle').textContent = 'Editar Cliente';
-                        document.getElementById('clientId').value = client.id;
-                        document.getElementById('clientName').value = client.nombre;
-                        document.getElementById('clientPhone').value = client.telefono || '';
-                        document.getElementById('clientEmail').value = client.email || '';
-                        document.getElementById('clientAddress').value = client.direccion || '';
-                        document.getElementById('clientBirthdate').value = client.fecha_nacimiento || '';
-                        
-                        // Actualizar campos de convenio
-                        if (document.getElementById('clientEmpresa')) {
-                            document.getElementById('clientEmpresa').value = client.empresa_id || '';
-                        }
-                        if (document.getElementById('clientConvenio')) {
-                            document.getElementById('clientConvenio').checked = client.convenio || false;
-                        }
-                        
-                        document.getElementById('clientModal').style.display = 'block';
-                    }
-                } catch (error) {
-                    console.error('Error al cargar datos del cliente:', error);
-                    alert('Error al cargar los datos del cliente');
-                }
-            });
-            
-            // Add status styles
-            const style = document.createElement('style');
-            style.textContent = `
-                .status-pendiente { color: #e67e22; font-weight: bold; }
-                .status-parcial { color: #3498db; font-weight: bold; }
-                .status-pagada { color: #2ecc71; font-weight: bold; }
-                .status-cancelada { color: #e74c3c; font-weight: bold; }
-                .status-completada { color: #2ecc71; font-weight: bold; }
-            `;
-            document.head.appendChild(style);
-            
-            // Búsqueda de clientes
-            document.getElementById('searchClienteBtn').addEventListener('click', function() {
-                buscarClientes();
-            });
-            
-            document.getElementById('searchCliente').addEventListener('keyup', function(e) {
-                if (e.key === 'Enter') {
-                    buscarClientes();
-                }
-            });
-            
-            function buscarClientes() {
-                const searchTerm = document.getElementById('searchCliente').value.toLowerCase();
-                
-                document.querySelectorAll('#clientsTableBody tr').forEach(row => {
-                    const nombre = row.cells[1].textContent.toLowerCase();
-                    const telefono = row.cells[2].textContent.toLowerCase();
-                    const email = row.cells[3].textContent.toLowerCase();
-                    
-                    if (nombre.includes(searchTerm) || telefono.includes(searchTerm) || email.includes(searchTerm) || searchTerm === '') {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-            }
-            
-            // Manejar cierre de modal de tarjeta
-            document.getElementById('closeCardBtn').addEventListener('click', function() {
-                document.getElementById('clientCardModal').style.display = 'none';
-            });
-            
-            // Manejar impresión de tarjeta
-            document.getElementById('printCardBtn').addEventListener('click', function() {
-                window.print();
-            });
-            
-            // Cerrar modales
-            document.querySelectorAll('.close, .close-modal').forEach(closeBtn => {
-                closeBtn.addEventListener('click', function() {
-                    document.querySelectorAll('.modal').forEach(modal => {
-                        modal.style.display = 'none';
-                    });
-                });
-            });
-            
-            // Cerrar modales al hacer clic fuera de ellos
-            window.addEventListener('click', function(e) {
-                document.querySelectorAll('.modal').forEach(modal => {
-                    if (e.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            });
-        });
-    </script>
+    <script src="js/clients.js"></script>
+    <script src="server/server-clientes.js"></script>
 </body>
 </html>
