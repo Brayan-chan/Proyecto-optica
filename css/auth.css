@@ -104,3 +104,16 @@
     background-color: transparent;
     left: 290px;
 }
+
+#forgotPassword {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+#forgotPasswordLink {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
