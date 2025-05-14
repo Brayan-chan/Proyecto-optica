@@ -27,3 +27,9 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         alert('Error al conectar con el servidor');
     }
 });
+
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordField = document.getElementById('password');
+    const type = passwordField.type === 'password' ? 'text' : 'password';
+    passwordField.type = type;
+});
