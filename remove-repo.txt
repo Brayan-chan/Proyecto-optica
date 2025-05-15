@@ -1,8 +1,0 @@
-# Elimina el enlace al repositorio original
-git remote remove origin
-
-# Agrega tu repositorio como remoto
-git remote add origin https://github.com/<tu-usuario>/<tu-repo>.git
-
-# Sube los cambios a tu repositorio
-git push -u origin main
