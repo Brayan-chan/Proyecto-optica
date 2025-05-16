@@ -8,7 +8,9 @@ import {
     getDoc,
     collection,
     getDocs,
-    setDoc
+    setDoc,
+    addDoc,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 import { auth, db } from "./firebase-config.js";
@@ -94,7 +96,7 @@ async function checkAndCreateInventoryCollection() {
             console.log("Creando colección de productos...");
             // Crear un documento inicial en la colección de productos
             await setDoc(doc(db, 'productos', 'initial'), {
-                createdAt: new Date(),
+                createdAt: serverTimestamp(),
                 message: 'Colección de productos inicializada'
             });
         }
@@ -105,7 +107,7 @@ async function checkAndCreateInventoryCollection() {
             console.log("Creando colección de armazones...");
             // Crear un documento inicial en la colección de armazones
             await setDoc(doc(db, 'armazones', 'initial'), {
-                createdAt: new Date(),
+                createdAt: serverTimestamp(),
                 message: 'Colección de armazones inicializada'
             });
         }
