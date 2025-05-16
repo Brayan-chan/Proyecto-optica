@@ -5,15 +5,97 @@ import {
     getDoc, 
     deleteDoc,
     addDoc,
-    updateDoc
+    updateDoc,
+    setDoc,
+    serverTimestamp,
+    query,
+    where,
+    orderBy
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 import { db } from "./firebase-config.js";
 
-document.addEventListener('DOMContentLoaded', () => {
+// Variables globales para almacenar categorías y proveedores
+let categorias = [];
+let proveedores = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('Página de inventario cargada');
     
-    // Configurar las pestañas
+    try {
+        // Verificar y crear colecciones necesarias
+        await checkAndCreateCollections();
+        
+        // Cargar categorías y proveedores
+        await loadCategorias();
+        await loadProveedores();
+        
+        // Configurar las pestañas
+        setupTabs();
+        
+        // Cargar datos iniciales
+        await loadProductos();
+        await loadArmazones();
+        
+        // Configurar eventos para los modales
+        setupModalEvents();
+        
+        // Configurar eventos para los formularios
+        setupFormEvents();
+    } catch (error) {
+        console.error("Error al inicializar la página de inventario:", error);
+    }
+});
+
+// Función para verificar y crear colecciones necesarias
+async function checkAndCreateCollections() {
+    try {
+        console.log("Verificando colecciones necesarias...");
+        
+        // Verificar si existe la colección de categorías
+        const categoriasSnapshot = await getDocs(collection(db, 'categorias'));
+        if (categoriasSnapshot.empty) {
+            console.log("Creando colección de categorías...");
+            // Crear categorías iniciales
+            const categoriasIniciales = [
+                { nombre: 'General', descripcion: 'Productos generales' },
+                { nombre: 'Lentes', descripcion: 'Lentes y accesorios' },
+                { nombre: 'Armazones', descripcion: 'Armazones para lentes' },
+                { nombre: 'Accesorios', descripcion: 'Accesorios para lentes' },
+                { nombre: 'Limpieza', descripcion: 'Productos de limpieza' }
+            ];
+            
+            for (const categoria of categoriasIniciales) {
+                await addDoc(collection(db, 'categorias'), {
+                    ...categoria,
+                    createdAt: serverTimestamp()
+                });
+            }
+        }
+        
+        // Verificar si existe la colección de proveedores
+        const proveedoresSnapshot = await getDocs(collection(db, 'proveedores'));
+        if (proveedoresSnapshot.empty) {
+            console.log("Creando colección de proveedores...");
+            // Crear un proveedor inicial
+            await addDoc(collection(db, 'proveedores'), {
+                nombre: 'Proveedor General',
+                telefono: '',
+                email: '',
+                direccion: '',
+                createdAt: serverTimestamp()
+            });
+        }
+        
+        console.log("Verificación de colecciones completada");
+    } catch (error) {
+        console.error("Error al verificar o crear colecciones:", error);
+        throw error;
+    }
+}
+
+// Función para configurar las pestañas
+function setupTabs() {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     
@@ -36,14 +118,81 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     });
-    
-    // Cargar datos iniciales
-    loadProductos();
-    loadArmazones();
-    
-    // Configurar eventos para los modales
-    setupModalEvents();
-});
+}
+
+// Función para cargar categorías
+async function loadCategorias() {
+    try {
+        const categoriasSnapshot = await getDocs(collection(db, 'categorias'));
+        categorias = [];
+        
+        categoriasSnapshot.forEach(doc => {
+            categorias.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        // Actualizar los selectores de categorías
+        const productoCategoriaSelect = document.getElementById('productoCategoria');
+        if (productoCategoriaSelect) {
+            productoCategoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
+            categorias.forEach(categoria => {
+                const option = document.createElement('option');
+                option.value = categoria.id;
+                option.textContent = categoria.nombre;
+                productoCategoriaSelect.appendChild(option);
+            });
+        }
+        
+        console.log("Categorías cargadas:", categorias.length);
+    } catch (error) {
+        console.error("Error al cargar categorías:", error);
+    }
+}
+
+// Función para cargar proveedores
+async function loadProveedores() {
+    try {
+        const proveedoresSnapshot = await getDocs(collection(db, 'proveedores'));
+        proveedores = [];
+        
+        proveedoresSnapshot.forEach(doc => {
+            proveedores.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        // Actualizar los selectores de proveedores
+        const productoProveedorSelect = document.getElementById('productoProveedor');
+        const armazonProveedorSelect = document.getElementById('armazonProveedor');
+        
+        if (productoProveedorSelect) {
+            productoProveedorSelect.innerHTML = '<option value="">Seleccione un proveedor</option>';
+            proveedores.forEach(proveedor => {
+                const option = document.createElement('option');
+                option.value = proveedor.id;
+                option.textContent = proveedor.nombre;
+                productoProveedorSelect.appendChild(option);
+            });
+        }
+        
+        if (armazonProveedorSelect) {
+            armazonProveedorSelect.innerHTML = '<option value="">Seleccione un proveedor</option>';
+            proveedores.forEach(proveedor => {
+                const option = document.createElement('option');
+                option.value = proveedor.id;
+                option.textContent = proveedor.nombre;
+                armazonProveedorSelect.appendChild(option);
+            });
+        }
+        
+        console.log("Proveedores cargados:", proveedores.length);
+    } catch (error) {
+        console.error("Error al cargar proveedores:", error);
+    }
+}
 
 // Función para cargar productos
 async function loadProductos() {
@@ -68,14 +217,33 @@ async function loadProductos() {
         // Agregar productos a la tabla
         productosSnapshot.forEach(doc => {
             const producto = doc.data();
+            
+            // Buscar nombre de categoría
+            let categoriaNombre = 'No especificada';
+            if (producto.categoriaId) {
+                const categoria = categorias.find(c => c.id === producto.categoriaId);
+                if (categoria) {
+                    categoriaNombre = categoria.nombre;
+                }
+            }
+            
+            // Buscar nombre de proveedor
+            let proveedorNombre = 'No especificado';
+            if (producto.proveedorId) {
+                const proveedor = proveedores.find(p => p.id === producto.proveedorId);
+                if (proveedor) {
+                    proveedorNombre = proveedor.nombre;
+                }
+            }
+            
             const row = document.createElement('tr');
             row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
             
             row.innerHTML = `
                 <td class="py-3 px-4">${producto.codigo || doc.id}</td>
                 <td class="py-3 px-4">${producto.nombre || ''}</td>
-                <td class="py-3 px-4">${producto.categoria || ''}</td>
-                <td class="py-3 px-4">${producto.proveedor || ''}</td>
+                <td class="py-3 px-4">${categoriaNombre}</td>
+                <td class="py-3 px-4">${proveedorNombre}</td>
                 <td class="py-3 px-4">$${(producto.precioCompra || 0).toFixed(2)}</td>
                 <td class="py-3 px-4">$${(producto.precioVenta || 0).toFixed(2)}</td>
                 <td class="py-3 px-4">${producto.stock || 0}</td>
@@ -129,6 +297,16 @@ async function loadArmazones() {
         // Agregar armazones a la tabla
         armazonesSnapshot.forEach(doc => {
             const armazon = doc.data();
+            
+            // Buscar nombre de proveedor
+            let proveedorNombre = 'No especificado';
+            if (armazon.proveedorId) {
+                const proveedor = proveedores.find(p => p.id === armazon.proveedorId);
+                if (proveedor) {
+                    proveedorNombre = proveedor.nombre;
+                }
+            }
+            
             const row = document.createElement('tr');
             row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
             
@@ -181,6 +359,13 @@ function setupModalEvents() {
                 document.getElementById('productoModalTitle').textContent = 'Agregar Producto';
                 document.getElementById('productoForm').reset();
                 document.getElementById('productoId').value = '';
+                
+                // Ocultar mensaje de error
+                const errorMessage = document.getElementById('error-message');
+                if (errorMessage) {
+                    errorMessage.classList.add('hidden');
+                    errorMessage.textContent = '';
+                }
             }
         });
     }
@@ -196,6 +381,13 @@ function setupModalEvents() {
                 document.getElementById('armazonModalTitle').textContent = 'Agregar Armazón';
                 document.getElementById('armazonForm').reset();
                 document.getElementById('armazonIdHidden').value = '';
+                
+                // Ocultar mensaje de error
+                const errorMessage = document.getElementById('armazon-error-message');
+                if (errorMessage) {
+                    errorMessage.classList.add('hidden');
+                    errorMessage.textContent = '';
+                }
             }
         });
     }
@@ -218,6 +410,174 @@ function setupModalEvents() {
             }
         });
     });
+}
+
+// Configurar eventos para los formularios
+function setupFormEvents() {
+    // Configurar formulario de producto
+    const productoForm = document.getElementById('productoForm');
+    if (productoForm) {
+        productoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const productoId = document.getElementById('productoId').value;
+                const codigo = document.getElementById('productoCodigo').value;
+                const nombre = document.getElementById('productoNombre').value;
+                const descripcion = document.getElementById('productoDescripcion').value;
+                const tipo = document.getElementById('productoTipo').value;
+                const categoriaId = document.getElementById('productoCategoria').value;
+                const proveedorId = document.getElementById('productoProveedor').value;
+                const precioCompra = parseFloat(document.getElementById('productoPrecioCompra').value);
+                const precioVenta = parseFloat(document.getElementById('productoPrecioVenta').value);
+                const stock = parseInt(document.getElementById('productoStock').value);
+                
+                // Validar campos requeridos
+                if (!codigo || !nombre || !tipo || !categoriaId || isNaN(precioCompra) || isNaN(precioVenta) || isNaN(stock)) {
+                    const errorMessage = document.getElementById('error-message');
+                    errorMessage.textContent = 'Por favor, complete todos los campos requeridos.';
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+                
+                // Crear objeto de producto
+                const productoData = {
+                    codigo,
+                    nombre,
+                    descripcion,
+                    tipo,
+                    categoriaId,
+                    proveedorId: proveedorId || null,
+                    precioCompra,
+                    precioVenta,
+                    stock,
+                    updatedAt: serverTimestamp()
+                };
+                
+                if (!productoId) {
+                    // Agregar fecha de creación para nuevos productos
+                    productoData.createdAt = serverTimestamp();
+                    
+                    // Verificar si ya existe un producto con el mismo código
+                    const codigoQuery = query(
+                        collection(db, 'productos'),
+                        where('codigo', '==', codigo)
+                    );
+                    const codigoSnapshot = await getDocs(codigoQuery);
+                    
+                    if (!codigoSnapshot.empty) {
+                        const errorMessage = document.getElementById('error-message');
+                        errorMessage.textContent = 'Ya existe un producto con este código.';
+                        errorMessage.classList.remove('hidden');
+                        return;
+                    }
+                    
+                    // Agregar nuevo producto
+                    await addDoc(collection(db, 'productos'), productoData);
+                    console.log('Producto agregado correctamente');
+                } else {
+                    // Actualizar producto existente
+                    await updateDoc(doc(db, 'productos', productoId), productoData);
+                    console.log('Producto actualizado correctamente');
+                }
+                
+                // Cerrar modal
+                document.getElementById('productoModal').style.display = 'none';
+                
+                // Recargar productos
+                await loadProductos();
+            } catch (error) {
+                console.error('Error al guardar producto:', error);
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = 'Error al guardar el producto. Inténtelo de nuevo.';
+                errorMessage.classList.remove('hidden');
+            }
+        });
+    }
+    
+    // Configurar formulario de armazón
+    const armazonForm = document.getElementById('armazonForm');
+    if (armazonForm) {
+        armazonForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const armazonId = document.getElementById('armazonIdHidden').value;
+                const codigo = document.getElementById('armazonId').value;
+                const nombre = document.getElementById('armazonNombre').value;
+                const marca = document.getElementById('armazonMarca').value;
+                const modelo = document.getElementById('armazonModelo').value;
+                const color = document.getElementById('armazonColor').value;
+                const material = document.getElementById('armazonMaterial').value;
+                const proveedorId = document.getElementById('armazonProveedor').value;
+                const precioCompra = parseFloat(document.getElementById('armazonPrecioCompra').value);
+                const precioVenta = parseFloat(document.getElementById('armazonPrecioVenta').value);
+                const stock = parseInt(document.getElementById('armazonStock').value);
+                
+                // Validar campos requeridos
+                if (!codigo || !nombre || isNaN(precioCompra) || isNaN(precioVenta) || isNaN(stock)) {
+                    const errorMessage = document.getElementById('armazon-error-message');
+                    errorMessage.textContent = 'Por favor, complete todos los campos requeridos.';
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+                
+                // Crear objeto de armazón
+                const armazonData = {
+                    codigo,
+                    nombre,
+                    marca,
+                    modelo,
+                    color,
+                    material,
+                    proveedorId: proveedorId || null,
+                    precioCompra,
+                    precioVenta,
+                    stock,
+                    tipo: 'armazon', // Tipo fijo para armazones
+                    updatedAt: serverTimestamp()
+                };
+                
+                if (!armazonId) {
+                    // Agregar fecha de creación para nuevos armazones
+                    armazonData.createdAt = serverTimestamp();
+                    
+                    // Verificar si ya existe un armazón con el mismo código
+                    const codigoQuery = query(
+                        collection(db, 'armazones'),
+                        where('codigo', '==', codigo)
+                    );
+                    const codigoSnapshot = await getDocs(codigoQuery);
+                    
+                    if (!codigoSnapshot.empty) {
+                        const errorMessage = document.getElementById('armazon-error-message');
+                        errorMessage.textContent = 'Ya existe un armazón con este código.';
+                        errorMessage.classList.remove('hidden');
+                        return;
+                    }
+                    
+                    // Agregar nuevo armazón
+                    await addDoc(collection(db, 'armazones'), armazonData);
+                    console.log('Armazón agregado correctamente');
+                } else {
+                    // Actualizar armazón existente
+                    await updateDoc(doc(db, 'armazones', armazonId), armazonData);
+                    console.log('Armazón actualizado correctamente');
+                }
+                
+                // Cerrar modal
+                document.getElementById('armazonModal').style.display = 'none';
+                
+                // Recargar armazones
+                await loadArmazones();
+            } catch (error) {
+                console.error('Error al guardar armazón:', error);
+                const errorMessage = document.getElementById('armazon-error-message');
+                errorMessage.textContent = 'Error al guardar el armazón. Inténtelo de nuevo.';
+                errorMessage.classList.remove('hidden');
+            }
+        });
+    }
 }
 
 // Configurar eventos para los productos
@@ -283,11 +643,19 @@ async function editProducto(productoId) {
                 document.getElementById('productoCodigo').value = producto.codigo || '';
                 document.getElementById('productoNombre').value = producto.nombre || '';
                 document.getElementById('productoDescripcion').value = producto.descripcion || '';
-                document.getElementById('productoCategoria').value = producto.categoria || '';
-                document.getElementById('productoProveedor').value = producto.proveedor || '';
+                document.getElementById('productoTipo').value = producto.tipo || '';
+                document.getElementById('productoCategoria').value = producto.categoriaId || '';
+                document.getElementById('productoProveedor').value = producto.proveedorId || '';
                 document.getElementById('productoPrecioCompra').value = producto.precioCompra || '';
                 document.getElementById('productoPrecioVenta').value = producto.precioVenta || '';
                 document.getElementById('productoStock').value = producto.stock || '';
+                
+                // Ocultar mensaje de error
+                const errorMessage = document.getElementById('error-message');
+                if (errorMessage) {
+                    errorMessage.classList.add('hidden');
+                    errorMessage.textContent = '';
+                }
             }
         } else {
             console.error("No se encontró el producto");
@@ -335,10 +703,17 @@ async function editArmazon(armazonId) {
                 document.getElementById('armazonModelo').value = armazon.modelo || '';
                 document.getElementById('armazonColor').value = armazon.color || '';
                 document.getElementById('armazonMaterial').value = armazon.material || '';
-                document.getElementById('armazonProveedor').value = armazon.proveedor || '';
+                document.getElementById('armazonProveedor').value = armazon.proveedorId || '';
                 document.getElementById('armazonPrecioCompra').value = armazon.precioCompra || '';
                 document.getElementById('armazonPrecioVenta').value = armazon.precioVenta || '';
                 document.getElementById('armazonStock').value = armazon.stock || '';
+                
+                // Ocultar mensaje de error
+                const errorMessage = document.getElementById('armazon-error-message');
+                if (errorMessage) {
+                    errorMessage.classList.add('hidden');
+                    errorMessage.textContent = '';
+                }
             }
         } else {
             console.error("No se encontró el armazón");
