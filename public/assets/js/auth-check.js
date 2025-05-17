@@ -94,22 +94,16 @@ async function checkAndCreateInventoryCollection() {
         const productosSnapshot = await getDocs(collection(db, 'productos'));
         if (productosSnapshot.empty) {
             console.log("Creando colección de productos...");
-            // Crear un documento inicial en la colección de productos
-            await setDoc(doc(db, 'productos', 'initial'), {
-                createdAt: serverTimestamp(),
-                message: 'Colección de productos inicializada'
-            });
+            // Crear un documento vacío para inicializar la colección
+            await setDoc(doc(db, 'productos', 'placeholder'), {});
         }
         
         // Verificar si existe la colección de armazones
         const armazonesSnapshot = await getDocs(collection(db, 'armazones'));
         if (armazonesSnapshot.empty) {
             console.log("Creando colección de armazones...");
-            // Crear un documento inicial en la colección de armazones
-            await setDoc(doc(db, 'armazones', 'initial'), {
-                createdAt: serverTimestamp(),
-                message: 'Colección de armazones inicializada'
-            });
+            // Crear un documento vacío para inicializar la colección
+            await setDoc(doc(db, 'armazones', 'placeholder'), {});
         }
         
         console.log("Verificación de colecciones completada");
