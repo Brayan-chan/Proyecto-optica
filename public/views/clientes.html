@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ah Kim Pech - Clientes</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/client-history.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -136,7 +137,7 @@
 <body class="bg-lightGray dark:bg-gray-900 text-dark dark:text-white">
     <!-- Header -->
     <header class="main-header">
-        <img src="img/iconoAKPV1.png" alt="Logo" id="logo">
+        <img src="../assets/img/iconoAKPV1.png" alt="Logo" id="logo">
         <div class="logo">
             <h1>Servicios Ópticos</h1>
             <h2>Ah Kim Pech</h2>
@@ -376,14 +377,6 @@
                             Compras
                             <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary"></span>
                         </button>
-                        <button class="history-tab-btn py-2 px-4 mr-2 font-medium relative" data-tab="recetas">
-                            Recetas
-                            <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary opacity-0"></span>
-                        </button>
-                        <button class="history-tab-btn py-2 px-4 mr-2 font-medium relative" data-tab="citas">
-                            Citas
-                            <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary opacity-0"></span>
-                        </button>
                     </div>
 
                     <!-- Historial de compras -->
@@ -409,54 +402,6 @@
                             </table>
                         </div>
                     </div>
-
-                    <!-- Historial de recetas -->
-                    <div class="history-tab-content" id="recetas-tab" style="display: none;">
-                        <h4 class="text-lg font-semibold my-3">Historial de recetas</h4>
-                        <div class="overflow-x-auto max-h-80 overflow-y-auto">
-                            <table class="data-table w-full bg-white dark:bg-gray-800 rounded-lg">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tl-lg">
-                                            Fecha</th>
-                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Ojo Izq.</th>
-                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Ojo Der.</th>
-                                        <th
-                                            class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tr-lg">
-                                            Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="clientRecetasBody" class="divide-y divide-mediumGray dark:divide-gray-700">
-                                    <!-- Data will be loaded dynamically -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Historial de citas -->
-                    <div class="history-tab-content" id="citas-tab" style="display: none;">
-                        <h4 class="text-lg font-semibold my-3">Historial de citas</h4>
-                        <div class="overflow-x-auto max-h-80 overflow-y-auto">
-                            <table class="data-table w-full bg-white dark:bg-gray-800 rounded-lg">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tl-lg">
-                                            Fecha</th>
-                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Motivo</th>
-                                        <th class="py-2 px-4 text-left bg-primary text-white sticky top-0">Estado</th>
-                                        <th
-                                            class="py-2 px-4 text-left bg-primary text-white sticky top-0 rounded-tr-lg">
-                                            Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="clientCitasBody" class="divide-y divide-mediumGray dark:divide-gray-700">
-                                    <!-- Data will be loaded dynamically -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Actions Section -->
@@ -471,26 +416,6 @@
                                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                         Nueva venta
-                    </button>
-                    <button
-                        class="btn-action bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors flex items-center"
-                        id="newRecetaBtn">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Nueva receta
-                    </button>
-                    <button
-                        class="btn-action bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded transition-colors flex items-center"
-                        id="newCitaBtn">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        Nueva cita
                     </button>
                     <button
                         class="btn-primary py-2 px-4 bg-primary hover:bg-primary/80 text-white rounded transition-colors flex items-center"
@@ -516,14 +441,8 @@
             </div>
         </div>
     </div>
-
-    <script type="module" src="../../server/config/firebase-config.js"></script>
-    <script type="module" src="../../server/auth/auth.js"></script>
-    <script type="module" src="../../server/auth/auth-check.js"></script>
-
-    <script src="js/main.js"></script>
-    <script src="js/clients.js"></script>
-    <script src="server/server-clientes.js"></script>
 </body>
 
+<script type="module" src="../assets/js/auth-check.js"></script>
+<script type="module" src="../assets/js/clientes.js"></script>
 </html>
