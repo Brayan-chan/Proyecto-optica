@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ah Kim Pech - Ventas</title>
-    <link rel="stylesheet" href="./assets/css/styles.css">
-    <link rel="stylesheet" href="./assets/css/sales.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/sales.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" type="image/png" sizes="32x32" href="./assets/img/iconoAKPV1.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="./assets/img/iconoAKPV1.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/iconoAKPV1.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/img/iconoAKPV1.png" />
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -175,7 +175,7 @@
 <body class="bg-lightGray dark:bg-gray-900 text-dark dark:text-white">
     <!-- Header -->
     <header class="main-header">
-        <img src="./assets/img/iconoAKPV1.png" alt="Logo" id="logo">
+        <img src="../assets/img/iconoAKPV1.png" alt="Logo" id="logo">
         <div class="logo">
             <h1>Servicios Ópticos</h1>
             <h2>Ah Kim Pech</h2>
@@ -328,15 +328,10 @@
             </form>
         </div>
     </div>
-
-    <script type="module" src="../../server/config/firebase-config.js"></script>
-    <script type="module" src="../../server/auth/auth.js"></script>
-    <script type="module" src="../../server/auth/auth-check.js"></script>
-
-    <script src="js/main.js"></script>
-    <script src="js/sales.js"></script>
-    <script src="js/ventas-eventos.js"></script>
-    <script src="server/server-ventas.js"></script>
+    
 </body>
+
+<script type="module" src="../assets/js/auth-check.js"></script>
+<script type="module" src="../assets/js/ventas.js"></script>
 
 </html>
