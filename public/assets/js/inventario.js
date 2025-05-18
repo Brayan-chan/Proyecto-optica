@@ -15,6 +15,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 import { db } from "./firebase-config.js";
+import { checkAndCreateInventoryCollection } from "./auth-check.js";
 
 // Variables globales para almacenar datos
 let categorias = [];
@@ -59,6 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     try {
         // Verificar y crear colecciones necesarias
+        // Ahora usamos la función importada de auth-check.js
         await checkAndCreateInventoryCollection();
         
         // Cargar categorías y proveedores
@@ -141,75 +143,39 @@ function showToast(message, type = 'info') {
     }, 5000);
 }
 
-// Función para verificar y crear colecciones necesarias
-async function checkAndCreateInventoryCollection() {
-    try {
-        console.log("Verificando colecciones de inventario...");
-        
-        // Verificar si existe la colección de categorías
-        const categoriasSnapshot = await getDocs(collection(db, 'categorias'));
-        if (categoriasSnapshot.empty) {
-            console.log("Creando colección de categorías...");
-            // Crear categorías iniciales
-            const categoriasIniciales = [
-                { nombre: 'General', descripcion: 'Productos generales' },
-                { nombre: 'Lentes de Contacto', descripcion: 'Lentes de contacto' },
-                { nombre: 'Lentes Solares', descripcion: 'Lentes para sol' },
-                { nombre: 'Lentes Fotocromáticos', descripcion: 'Lentes fotocromáticos' },
-                { nombre: 'Lentes Oftálmicos', descripcion: 'Lentes oftálmicos' },
-                { nombre: 'Armazones', descripcion: 'Armazones para lentes' },
-                { nombre: 'Accesorios', descripcion: 'Accesorios para lentes' },
-                { nombre: 'Limpieza', descripcion: 'Productos de limpieza' }
-            ];
-            
-            for (const categoria of categoriasIniciales) {
-                await addDoc(collection(db, 'categorias'), {
-                    ...categoria,
-                    createdAt: serverTimestamp()
-                });
-            }
-        }
-        
-        // Verificar si existe la colección de proveedores
-        const proveedoresSnapshot = await getDocs(collection(db, 'proveedores'));
-        if (proveedoresSnapshot.empty) {
-            console.log("Creando colección de proveedores...");
-            // Crear un proveedor inicial
-            await addDoc(collection(db, 'proveedores'), {
-                nombre: 'Proveedor General',
-                telefono: '',
-                email: '',
-                direccion: '',
-                createdAt: serverTimestamp()
-            });
-        }
-        
-        // Verificar si existe la colección de productos
-        const productosSnapshot = await getDocs(collection(db, 'productos'));
-        if (productosSnapshot.empty) {
-            console.log("Creando colección de productos...");
-            // Solo crear la colección, sin datos de ejemplo
-            await setDoc(doc(db, 'productos', 'placeholder'), {
-                createdAt: serverTimestamp(),
-                isPlaceholder: true
-            });
-        }
-        
-        // Verificar si existe la colección de armazones
-        const armazonesSnapshot = await getDocs(collection(db, 'armazones'));
-        if (armazonesSnapshot.empty) {
-            console.log("Creando colección de armazones...");
-            // Solo crear la colección, sin datos de ejemplo
-            await setDoc(doc(db, 'armazones', 'placeholder'), {
-                createdAt: serverTimestamp(),
-                isPlaceholder: true
-            });
-        }
-        
-        console.log("Verificación de colecciones completada");
-    } catch (error) {
-        console.error("Error al verificar o crear colecciones:", error);
-        throw error;
+// Función para cargar valores únicos para los filtros
+function updateProductTypeSelector() {
+    const productoTipoSelect = document.getElementById('productoTipo');
+    const filterProductoTipoSelect = document.getElementById('filterProductoTipo');
+    
+    const tiposProductos = [
+        { value: 'producto', label: 'Producto General' },
+        { value: 'lentes_contacto', label: 'Lentes de Contacto' },
+        { value: 'lentes_solares', label: 'Lentes Solares' },
+        { value: 'lentes_fotocromaticos', label: 'Lentes Fotocromáticos' },
+        { value: 'lentes_oftalmicos', label: 'Lentes Oftálmicos' },
+        { value: 'armazon', label: 'Armazón' },
+        { value: 'accesorio', label: 'Accesorio' }
+    ];
+    
+    if (productoTipoSelect) {
+        productoTipoSelect.innerHTML = '<option value="">Seleccione un tipo</option>';
+        tiposProductos.forEach(tipo => {
+            const option = document.createElement('option');
+            option.value = tipo.value;
+            option.textContent = tipo.label;
+            productoTipoSelect.appendChild(option);
+        });
+    }
+    
+    if (filterProductoTipoSelect) {
+        filterProductoTipoSelect.innerHTML = '<option value="">Todos</option>';
+        tiposProductos.forEach(tipo => {
+            const option = document.createElement('option');
+            option.value = tipo.value;
+            option.textContent = tipo.label;
+            filterProductoTipoSelect.appendChild(option);
+        });
     }
 }
 
