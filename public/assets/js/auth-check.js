@@ -86,16 +86,57 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Función para verificar y crear la colección de inventario si no existe
-async function checkAndCreateInventoryCollection() {
+export async function checkAndCreateInventoryCollection() {
     try {
         console.log("Verificando colecciones de inventario...");
+        
+        // Verificar si existe la colección de categorías
+        const categoriasSnapshot = await getDocs(collection(db, 'categorias'));
+        if (categoriasSnapshot.empty) {
+            console.log("Creando colección de categorías...");
+            // Crear categorías iniciales
+            const categoriasIniciales = [
+                { nombre: 'General', descripcion: 'Productos generales' },
+                { nombre: 'Lentes de Contacto', descripcion: 'Lentes de contacto' },
+                { nombre: 'Lentes Solares', descripcion: 'Lentes para sol' },
+                { nombre: 'Lentes Fotocromáticos', descripcion: 'Lentes fotocromáticos' },
+                { nombre: 'Lentes Oftálmicos', descripcion: 'Lentes oftálmicos' },
+                { nombre: 'Armazones', descripcion: 'Armazones para lentes' },
+                { nombre: 'Accesorios', descripcion: 'Accesorios para lentes' },
+                { nombre: 'Limpieza', descripcion: 'Productos de limpieza' }
+            ];
+            
+            for (const categoria of categoriasIniciales) {
+                await addDoc(collection(db, 'categorias'), {
+                    ...categoria,
+                    createdAt: serverTimestamp()
+                });
+            }
+        }
+        
+        // Verificar si existe la colección de proveedores
+        const proveedoresSnapshot = await getDocs(collection(db, 'proveedores'));
+        if (proveedoresSnapshot.empty) {
+            console.log("Creando colección de proveedores...");
+            // Crear un proveedor inicial
+            await addDoc(collection(db, 'proveedores'), {
+                nombre: 'Proveedor General',
+                telefono: '',
+                email: '',
+                direccion: '',
+                createdAt: serverTimestamp()
+            });
+        }
         
         // Verificar si existe la colección de productos
         const productosSnapshot = await getDocs(collection(db, 'productos'));
         if (productosSnapshot.empty) {
             console.log("Creando colección de productos...");
             // Crear un documento vacío para inicializar la colección
-            await setDoc(doc(db, 'productos', 'placeholder'), {});
+            await setDoc(doc(db, 'productos', 'placeholder'), {
+                isPlaceholder: true,
+                createdAt: serverTimestamp()
+            });
         }
         
         // Verificar si existe la colección de armazones
@@ -103,7 +144,10 @@ async function checkAndCreateInventoryCollection() {
         if (armazonesSnapshot.empty) {
             console.log("Creando colección de armazones...");
             // Crear un documento vacío para inicializar la colección
-            await setDoc(doc(db, 'armazones', 'placeholder'), {});
+            await setDoc(doc(db, 'armazones', 'placeholder'), {
+                isPlaceholder: true,
+                createdAt: serverTimestamp()
+            });
         }
         
         console.log("Verificación de colecciones completada");
